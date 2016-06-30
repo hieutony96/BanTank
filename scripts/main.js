@@ -1,4 +1,19 @@
-var TankOnline = {};
+var TankOnline = {
+  map : [
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,1,1,1,1,1,1,1,1,0,0,0,1,1,1,1,1,1,1,1,0,0,0],
+      [0,0,0,1,1,1,1,1,1,1,1,0,0,0,1,1,1,1,1,1,1,1,0,0,0],
+      [0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0],
+      [0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0],
+      [0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0],
+      [0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0],
+      [0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0],
+      [0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+    ]
+};
 
 window.onload = function(){
   TankOnline.game = new Phaser.Game(window.innerWidth,
@@ -8,100 +23,116 @@ window.onload = function(){
                                     { preload: preload, create: create, update: update });
 }
 
-var tank, tank1;
-var bullet;
-var text;
-var bulletdirectionX, bulletdirectionY;
-var thefirst=1;
+var tank;
+var wallGroup, enemyGroup, allyGroup;
 var preload = function(){
   TankOnline.game.load.image('tankDown', './images/tank_player1_down_c0_t1_s1.png');
   TankOnline.game.load.image('tankUp', './images/tank_player1_up_c0_t1_s1.png');
   TankOnline.game.load.image('tankLeft', './images/tank_player1_left_c0_t1_s1.png');
   TankOnline.game.load.image('tankRight', './images/tank_player1_right_c0_t1_s1.png');
+
   TankOnline.game.load.image('bulletDown', './images/bullet_down.png');
   TankOnline.game.load.image('bulletUp', './images/bullet_up.png');
   TankOnline.game.load.image('bulletLeft', './images/bullet_left.png');
   TankOnline.game.load.image('bulletRight', './images/bullet_right.png');
+
+  TankOnline.game.load.image('wall', './images/wall_steel.png');
+
+
 }
 
 var create = function(){
-  //Ban dau khoi tao
-  // tank = TankOnline.game.add.sprite(window.innerWidth/2, window.innerHeight/2, 'tankDown');
-
-  tank = new Tank(window.innerWidth/2, window.innerHeight/2);
-  // bullet = new Bullet(tank.positionX(),tank.positionY(), 'bulletDown');
-  // tank1 = new Tank(window.innerWidth/2-100, window.innerHeight/2);
-
   TankOnline.game.physics.startSystem(Phaser.Physics.ARCADE);
-  TankOnline.game.physics.arcade.enable(tank);
-  // TankOnline.game.physics.arcade.enable(bullet);
   TankOnline.keyboard = TankOnline.game.input.keyboard;
-  bulletdirectionY = 1;
-  bulletdirectionX = 0;
-  text = TankOnline.game.add.text(window.innerWidth/2, 16, '', { fill: '#ffffff' });
+
+  wallGroup = TankOnline.game.add.physicsGroup();
+  enemyGroup = TankOnline.game.add.physicsGroup();
+  allyGroup = TankOnline.game.add.physicsGroup();
+  TankOnline.bulletAllyGroup = TankOnline.game.add.physicsGroup();
+  TankOnline.bulletEnemyGroup = TankOnline.game.add.physicsGroup();
+  tank = new Tank(window.innerWidth/2, window.innerHeight/2, allyGroup);
+  enemyTank = new Tank(window.innerWidth/2, window.innerHeight/2, enemyGroup);
+  // for(var i=0; i<10; i++){
+  //   new Tank(Math.random()+TankOnline.game.world.bounds.width,
+  //           Math.random()+TankOnline.game.world.bounds.height,
+  //           enemyGroup);
+  // }
+  TankOnline.game.camera.follow(tank.sprite);
+  TankOnline.game.world.setBounds(0,0,1500,800);
+
+  //camera theo xe tang
+  for(var i=0; i<TankOnline.map.length; i++){
+    for(var j=0; j<TankOnline.map[i].length; j++){
+      //TODO create all walls here
+      if(TankOnline.map[i][j])
+        new Wall(j*16, i*16, wallGroup);
+    }
+  }
 
 }
+var onAllyBulletHitWall = function(bulletSprite){
+  bulletSprite.kill();
+}
+var onEnemyBulletHitWall = function(bulletSprite){
+  bulletSprite.kill();
+}
+var onBulletHitEnemy = function(bulletSprite, enemySprite){
+  enemySprite.damage(bulletSprite.bulletDamage);
+  bulletSprite.kill();
+}
+// var onEnemyBulletHitAlly = function(bulletSprite, enemySprite){
+//   enemySprite.damage(bulletSprite.bulletDamage);
+//   bulletSprite.kill();
+// }
 
-var checkBulletMove = false;
+
+
+
 var update = function(){
-  if(TankOnline.keyboard.isDown(Phaser.KeyCode.LEFT)){
-    // tank.body.velocity.x = -150;
-    directionX = -1;
-    bulletdirectionX = -1;
-    bulletdirectionY = 0;
+  //Khong cho va cham
+  TankOnline.game.physics.arcade.collide(tank.sprite, wallGroup);
+  TankOnline.game.physics.arcade.collide(enemyTank.sprite, wallGroup);
+  TankOnline.game.physics.arcade.overlap(TankOnline.bulletAllyGroup, wallGroup,
+                                        onAllyBulletHitWall, null, this);
+  TankOnline.game.physics.arcade.overlap(TankOnline.bulletEnemyGroup, wallGroup,
+                                        onEnemyBulletHitWall, null, this);
+  TankOnline.game.physics.arcade.overlap(TankOnline.bulletAllyGroup, enemyGroup,
+                                        onBulletHitEnemy, null, this);
+  TankOnline.game.physics.arcade.overlap(TankOnline.bulletEnemyGroup, allyGroup,
+                                        onBulletHitEnemy, null, this);
+  // TankOnline.game.physics.arcade.overlap(TankOnline.bulletEnemyGroup, allyGroup,
+  //                                       onBulletHitAlly, null, this);
+  //c.call la loi khi truyen thieu null
+  //Truyen vao ham onBulletHitWall, this dang sau, ve sau khi trong ham onHit..
+  //this la cai this do
 
+  var direction = new Phaser.Point();
+  var enemyDirection = new Phaser.Point();
+  if(TankOnline.keyboard.isDown(Phaser.KeyCode.A)) direction.x = -1;
+  else if (TankOnline.keyboard.isDown(Phaser.KeyCode.D)) direction.x = 1;
+  else direction.x = 0;
 
+  if(TankOnline.keyboard.isDown(Phaser.KeyCode.W)) direction.y = -1;
+  else if (TankOnline.keyboard.isDown(Phaser.KeyCode.S)) direction.y = 1;
+  else direction.y = 0;
 
-    // tank.loadTexture('tankLeft');
-  }
-  else if(TankOnline.keyboard.isDown(Phaser.KeyCode.RIGHT)){
-    // tank.body.velocity.x = 150;
-    directionX = 1;
-    bulletdirectionX = 1;
-    bulletdirectionY = 0;
+  //EnemyTank KeyCode
+  if(TankOnline.keyboard.isDown(Phaser.KeyCode.LEFT)) enemyDirection.x = -1;
+  else if (TankOnline.keyboard.isDown(Phaser.KeyCode.RIGHT)) enemyDirection.x = 1;
+  else enemyDirection.x = 0;
 
+  if(TankOnline.keyboard.isDown(Phaser.KeyCode.UP)) enemyDirection.y = -1;
+  else if (TankOnline.keyboard.isDown(Phaser.KeyCode.DOWN)) enemyDirection.y = 1;
+  else enemyDirection.y = 0;
 
-    // tank.loadTexture('tankRight');
-  }
-  else{
-    // tank.body.velocity.x = 0;
-    directionX = 0;
-  }
+  tank.update(direction);
+  enemyTank.update(enemyDirection);
 
-  if(TankOnline.keyboard.isDown(Phaser.KeyCode.UP)){
-    // tank.body.velocity.y = -150;
-    directionY = -1;
-    bulletdirectionY = -1;
-    bulletdirectionX = 0;
-
-    // tank.loadTexture('tankUp');
-  }
-  else if(TankOnline.keyboard.isDown(Phaser.KeyCode.DOWN)){
-    // tank.body.velocity.y = 150;
-    directionY = 1;
-    bulletdirectionY = 1;
-    bulletdirectionX = 0;
-    // tank.loadTexture('tankDown');
-  }
-  else{
-    // tank.body.velocity.y = 0;
-    directionY = 0;
-  }
-  tank.update(directionX, directionY);
-  // text.text = TankOnline.game.cache.getImage("bulletDown").height/2;
   if(TankOnline.keyboard.isDown(Phaser.KeyCode.SPACEBAR)){
-    if(thefirst==1){
-      bullet = new Bullet(tank.positionX(), tank.positionY(), 'bulletDown');
-      thefirst=0;
-      TankOnline.game.physics.arcade.enable(bullet);
-    }
-
-    if(bullet.checkPostion()==true){
-      checkBulletMove = false;
-      bullet = new Bullet(tank.positionX(), tank.positionY(), 'bulletDown');
-    }
-
-    bullet.update(bulletdirectionX, bulletdirectionY, checkBulletMove);
-    checkBulletMove=true;
+    tank.fire(TankOnline.bulletAllyGroup);
   }
+  if(TankOnline.keyboard.isDown(Phaser.KeyCode.SHIFT)){
+    enemyTank.fire(TankOnline.bulletEnemyGroup);
+  }
+
 }
