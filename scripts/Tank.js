@@ -1,16 +1,12 @@
 class Tank{
-  constructor(x, y, tankGroup){
-    // this.sprite = TankOnline.game.add.sprite(x, y, 'tankDown');
-    this.sprite = tankGroup.create(x, y, 'tankDown');
+  constructor(x, y, group){
+    this.sprite = group.create(x, y, 'tankDown');
     TankOnline.game.physics.arcade.enable(this.sprite);
     this.sprite.anchor.set(0.5,0.5);
     this.direction = new Phaser.Point(0,1);
-    //Dung thoi gian tinh tu bay gio
     this.lastShotTime = TankOnline.game.time.now;
-    //K di xuyen vong ben ngoai
     this.sprite.body.collideWorldBounds = true;
     this.sprite.health = 5;
-    //set mau, API
   }
 
   update(direction){
@@ -41,13 +37,5 @@ class Tank{
     else{
       this.sprite.body.velocity.y = 0;
     }
-  }
-
-  fire(bulletGroup){
-    if(TankOnline.game.time.now - this.lastShotTime > 200 && this.sprite.health!=0){
-      this.lastShotTime = TankOnline.game.time.now;
-      new Bullet(this, bulletGroup);
-    }
-    // new Bullet(this);
   }
 }
