@@ -42,7 +42,14 @@ var preload = function(){
   TankOnline.game.load.image('wall', './images/wall_steel.png');
 }
 
+TankOnline.createTank = function(position){
+  TankOnline.tank = new Tank(position.x, position.y, TankOnline.tankGroup);
+  TankOnline.inputController = new InputController(TankOnline.keyboard, TankOnline.tank);
+  TankOnline.game.camera.follow(TankOnline.tank.sprite);
+}
+
 var create = function(){
+  TankOnline.client = new Client();
   TankOnline.game.physics.startSystem(Phaser.Physics.ARCADE);
   TankOnline.keyboard = TankOnline.game.input.keyboard;
 
@@ -51,23 +58,16 @@ var create = function(){
   TankOnline.bulletGroup = TankOnline.game.add.physicsGroup();
   TankOnline.tankGroup = TankOnline.game.add.physicsGroup();
 
-  var tank = new Tank(window.innerWidth/2, window.innerHeight/2, TankOnline.tankGroup);
-  TankOnline.inputController = new InputController(TankOnline.keyboard, tank);
+  // var tank = new Tank(TankOnline.client.getLocation().x, TankOnline.client.getLocation().x, tankGroup);
+  // var tank = new Tank(window.innerWidth/2, window.innerHeight/2, TankOnline.tankGroup);
+  // TankOnline.inputController = new InputController(TankOnline.keyboard, tank);
 
   TankOnline.game.world.setBounds(0, 0, 3000, 800);
-  TankOnline.game.camera.follow(tank.sprite);
+
 
   for(var i=0;i<TankOnline.map.length;i++){
     for(var j=0;j<TankOnline.map[i].length;j++){
-      /*
-        0 -> false
-        "" -> false
-        null -> false
-        undefined -> false
-        all other -> true
-       */
       if(TankOnline.map[i][j]){
-        // Because the wall_steel.png image is 16x16 pixels
         new Wall(j*16, i*16, TankOnline.wallGroup);
       }
     }
@@ -91,7 +91,7 @@ var update = function(){
     this
   );
 
-  TankOnline.inputController.update();
+  if(TankOnline.inputController) TankOnline.inputController.update();
 }
 
 var onBulletHitWall = function(bulletSprite, wallSprite){
@@ -99,6 +99,9 @@ var onBulletHitWall = function(bulletSprite, wallSprite){
 }
 
 var onBulletHitTank = function(bulletSprite, tankSprite){
-  tankSprite.damage(bulletSprite.bulletDamage);
-  bulletSprite.kill();
+  if(bulletSprite.tankSprite != tankSprite){
+    tankSprite.damage(bulletSprite.bulletDamage);
+    bulletSprite.kill();
+  }
+
 }
