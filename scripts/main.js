@@ -95,7 +95,9 @@ var onBulletHitWall = function(bulletSprite, wallSprite){
 
 var onBulletHitTank = function(bulletSprite, tankSprite){
   if(bulletSprite.tankSprite != tankSprite){
-    tankSprite.damage(bulletSprite.bulletDamage);
+    //Chỉ check nếu như đấy là tank mình, còn tank khác thì kệ
+    if(tankSprite.id == TankOnline.inputController.tank.sprite.id)
+      tankSprite.damage(bulletSprite.bulletDamage);
     bulletSprite.kill();
   }
 }
@@ -130,6 +132,15 @@ TankOnline.updateBullet = function(id){
   for(var i=0; i<TankOnline.enemies.length; i++){
     if(TankOnline.enemies[i].sprite.id == id){
       TankOnline.enemies[i].fire();
+      return;
+    }
+  }
+}
+TankOnline.updateTank = function(id){
+  for(var i=0; i<TankOnline.enemies.length; i++){
+    if(TankOnline.enemies[i].sprite.id == id){
+      // console.log(id);
+      TankOnline.enemies[i].sprite.destroy();
       return;
     }
   }

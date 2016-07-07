@@ -32,6 +32,9 @@ io.on('connection', function(socket){
   socket.on('bulletMoved', function(msg){
     socket.broadcast.emit('sendBullet', msg);
   });
+  socket.on('tankDied', function(msg){
+    socket.broadcast.emit('sendDiedToAll', msg);
+  });
 });
 
 http.listen(6969, function(){

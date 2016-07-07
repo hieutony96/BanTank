@@ -20,6 +20,9 @@ class Client{
     this.socket.on('sendBullet', function(msg){
       TankOnline.updateBullet(msg);
     });
+    this.socket.on('sendDiedToAll', function(msg){
+      TankOnline.updateTank(msg);
+    });
   }
   sendUpdate(id, direction, position){
     this.socket.emit('tankMoved', {
@@ -30,5 +33,8 @@ class Client{
   }
   sendBullet(id){
     this.socket.emit('bulletMoved', id);
+  }
+  sendDied(id){
+    this.socket.emit('tankDied', id);
   }
 }
