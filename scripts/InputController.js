@@ -25,7 +25,6 @@ class InputController{
         TankOnline.client.sendBullet(this.tank.sprite.id);
       }
     }
-    else TankOnline.client.sendDied(this.tank.sprite.id);
   }
 
 

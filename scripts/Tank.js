@@ -8,6 +8,7 @@ class Tank{
     this.sprite.body.collideWorldBounds = true;
     this.sprite.health = 5;
     this.sprite.id = id;
+    this.sprite.events.onKilled.add(this.explode, this);
   }
 
   update(direction){
@@ -41,5 +42,8 @@ class Tank{
   }
   fire(){
     new Bullet(this);
+  }
+  explode(){
+    TankOnline.onTankExploded(this.sprite.position);
   }
 }
